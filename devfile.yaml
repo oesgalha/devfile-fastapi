@@ -1,0 +1,37 @@
+schemaVersion: 2.1.0
+metadata:
+  name: icde-fastapi-template
+components:
+  - name: tools
+    container:
+      image: quay.io/devfile/universal-developer-image:ubi8-latest
+      endpoints:
+        - exposure: public
+          name: django
+          targetPort: 8000
+          path: /docs
+      volumeMounts:
+        - name: venv
+          path: /home/user/.venv
+      memoryLimit: 512Mi
+      mountSources: true
+  - name: venv
+    volume:
+      size: 1G
+commands:
+  - id: install-dependencies
+    exec:
+      label: "Install dependencies"
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: "pip install --upgrade pip && pip install poetry==1.6.1 && poetry install"
+      group:
+        kind: build
+  - id: run
+    exec:
+      label: "Run the server"
+      component: tools
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: "poetry run uvicorn app.main:app --host '0.0.0.0'"
+      group:
+        kind: run
